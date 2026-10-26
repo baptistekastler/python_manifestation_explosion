@@ -5,6 +5,7 @@ Pour le projet ont été utilisées les données suivantes
 - données scrapées sur un [site](https://www.17octobregiletjaune.net/carte/17-octobre/), créé par Benjamin Ball
 - données topographiques fournies par
 Elles sont stockées en S3.
+· données recherchées sur le site data.economie.gouv.fr pour la fiscalité locale et les dépenses locales
 
 ## Organisation du projet 
 Le gros du projet se trouve dans le notebook XXXX. Le code pour le *scraping* peut être trouvé dans XXXX. 
