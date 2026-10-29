@@ -5,17 +5,27 @@ import os
 import s3fs
 import pandas as pd
 
-# Connexion au stockage S3 (MinIO) du SSP Cloud qui se trouve dasn data storage sur l'nterface
-fs = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": f"https://{os.environ['AWS_S3_ENDPOINT']}"}
-)
+# Cela permet jusqu'au 5 novembre d'avoir accès au s3 des données 
+# Je le changerai ensuite
+os.environ["AWS_ACCESS_KEY_ID"] = "0GV7OGAPFW6WCFIIESL5"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "I0wQtE6WQmz72LfRkW+f7B9YnocUzhy82j1Ky3Ie"
+os.environ["AWS_SESSION_TOKEN"] = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiIwR1Y3T0dBUEZXNldDRklJRVNMNSIsImFjciI6IjAiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJhdWQiOiJtaW5pby1kYXRhbm9kZSIsImF1dGhfdGltZSI6MTc5MzAwOTIyNiwiYXpwIjoib255eGlhX21pbmlvIiwiY25mIjp7ImprdCI6IjFYYllzaTY4NlJYaThOdmtZUHJZaWU3RWxRSEdwS3JxZjhUYXQxSzNLRFEiLCJrYy1qa3QtdHlwZSI6IkRQb1AifSwiZW1haWwiOiJiYXB0aXN0ZS5rYXN0bGVyQGVuc2FlLmZyIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImV4cCI6MTc5Mzg4OTEyOCwiZmFtaWx5X25hbWUiOiJLYXN0bGVyIiwiZ2l2ZW5fbmFtZSI6IkJhcHRpc3RlIiwiZ3JvdXBzIjpbIlVTRVJfT05ZWElBIl0sImlhdCI6MTc5MzI4NDMyOCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmxhYi5zc3BjbG91ZC5mci9hdXRoL3JlYWxtcy9zc3BjbG91ZCIsImp0aSI6Im9ucnRydDo0NmI1MDBjZi1hMDlkLTQyZGUtOWQ2NC0yZDUzZjA5N2U4YWUiLCJsb2NhbGUiOiJmciIsIm5hbWUiOiJCYXB0aXN0ZSBLYXN0bGVyIiwicG9saWN5Ijoic3Rzb25seSxzdHNvbmx5MiIsInByZWZlcnJlZF91c2VybmFtZSI6InNwa3RhcWxyIiwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZ3JvdXBzIGVtYWlsIiwic2lkIjoiWEFHTGtkVFVQbF9QQWdkNFFRVVdxaElhIiwic3ViIjoiMTRkMTQ1MWUtNDM4NS00MmZmLWJhNjktZTEyM2NjODdhMDEyIiwidHlwIjoiRFBvUCJ9.51PoLcb4fnMCK6q25cMRnTwKMbXlGOCnhiorI9fPUe9pL_laI4bsIkmHK7gZcXYfHJ_AAVATA6ToslgQ0dcehQ"
+
+
+# Connexion au stockage S3 du SSP Cloud qui se trouve dans data storage sur l'nterface
+def get_fs():
+    s3fs.S3FileSystem.clear_instance_cache()
+    return s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": f"https://{os.environ['AWS_S3_ENDPOINT']}"}
+    )
+fs = get_fs()
 
 # definition de certaines variables et des chemins d'accès
 DOSSIER = "spktaqlr/diffusion"
 COL_SIREN = "sirepci"
 COL_ANNEE = "exercice"
 
-print(fs.ls(DOSSIER))  # verification de l'existence des fichier
+print(fs.ls(DOSSIER))  # verification de l'existence des fichiers
 
 # lecture des fichiers sur les votes de fiscalité locale
 FICHIERS_FISCALITE = {
