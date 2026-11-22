@@ -3,54 +3,139 @@ import pandas as pd
 import geopandas as gpd
 import folium
 from folium.plugins import MarkerCluster
+from cartiflette import carti_download
+import ipywidgets
 
 
-def liste_colonnes(df):
-    """Permet simplement d'afficher une liste des colonnes d'un df
+URL_COMMUNES = (
+    "https://etalab-datasets.geo.data.gouv.fr/contours-administratifs/"
+    "{year}/geojson/communes-1000m.geojson"
+)
+
+
+def ajouter_code_insee(
+    df: pd.DataFrame,
+    lon_col: str = "lon",
+    lat_col: str = "lat",
+    year: int = 2024,
+    code_col: str = "code_insee",
+) -> pd.DataFrame:
+    """Ajoute les codes Insee aux évènements à partir de leurs coordonnées GPS et d'un fichier geojson disponible dans sur etalab
 
     Args:
-        df (pd.DataFrame): un df
+        df (pd.DataFrame): _description_
+        lon_col (str, optional): _description_. Defaults to "lon".
+        lat_col (str, optional): _description_. Defaults to "lat".
+        year (int, optional): _description_. Defaults to 2024.
+        code_col (str, optional): _description_. Defaults to "code_insee".
 
     Returns:
-        list : des str avec les noms des colonnes
+        pd.DataFrame: un df avec une colonne en plus
     """
-    for col in df.columns.to_list():
-        print(f"  -{col!s}")
+    df = df.copy()
 
-def merger_communes_event_bool(all_communes, scraped) -> pd.DataFrame:
-    """Fusionne les tables pour avoir des stats sur les communes au niveau de la France
+    lon = pd.to_numeric(df[lon_col], errors="coerce")
+    lat = pd.to_numeric(df[lat_col], errors="coerce")
+    valides = lon.notna() & lat.notna()
+
+    communes = gpd.read_file(URL_COMMUNES.format(year=year))[["code", "geometry"]]
+    communes = communes.to_crs(4326)
+
+    points = gpd.GeoDataFrame(
+        df.loc[valides, []],
+        geometry=gpd.points_from_xy(lon[valides], lat[valides]),
+        crs=4326,
+    )
+
+    joint = gpd.sjoin(points, communes, how="left", predicate="within")
+    joint = joint[~joint.index.duplicated(keep="first")]
+
+    df[code_col] = pd.NA
+    df.loc[joint.index, code_col] = joint["code"]
+    return df
+
+
+def merge_communes(df, all_communes)-> pd.DataFrame:
+    """_summary_
 
     Args:
-        all_communes (pd.DataFrame): fichier appartenance geo communes de l'Insee
-        scraped (pd.DataFrame): évènements recensés sur 17octobregiletsjaunes.net
-
-    Returns:
-        pd.DataFrame: table fusionnée avec les données de toutes les communes, pour faire des statistiques descriptives sur toute la France.
-    """
-    communes = all_communes.copy()
-    evenements = scraped.copy()
-
-    evenements = evenements.unique("ville")
-
-    
-
-
-
-
-
-
-def merger_communes_event_types(all_communes, scraped, type) -> pd.DataFrame:
-    """Permet de faire des stats sur les types d'évènements
-
-    Args:
-        all_communes (_type_): _description_
-        scraped (_type_): _description_
+        df (pd.DataFrame): Un df avec tous les évènements
+        all_communes (pd.DataFrame): un df avec toutes les communes 
 
     Returns:
         pd.DataFrame: _description_
     """
     communes = all_communes.copy()
-    evenements = scraped.copy()
+    evenements = df.copy()
+
+    communes["CODGEO"] = communes["CODGEO"].astype(str).str.strip().str.zfill(5)
+
+    # Gestion propre des éventuels NaN ou floats (ex: 1001.0 -> '01001') dans code_insee
+    evenements["code_insee"] = (
+        evenements["code_insee"]
+        .astype("string")
+        .str.strip()
+        .str.replace(r"\.0$", "", regex=True)
+        .str.zfill(5)
+    )
+
+    #jointure à gauche, avec les données au format long (une ligne / evenement)
+    merged = communes.merge(
+        evenements,
+        left_on="CODGEO",
+        right_on="code_insee",
+        how="left",
+    )
+
+    merged["has_event"] = merged["id"].notna()
+
+    return merged
+
+
+
+
+def desc_bool(df)->pd.DataFrame:
+    """génère une table qui donne la proportion de communes où il y a eu un évènement
+
+    Args:
+        df (pd.DataFrame): une table avec toutes les communes, où seules les communes où il n'y a pas eu d'évènement ont des NA dans la colonne 'title'
+
+    Returns:
+        pd.DataFrame: la table descriptive
+    """
+    df_clean = df[df["code_insee"].unique()]
+    effectifs = df_clean["title"].value_count(drop_na=True)
+    stats = pd.DataFrame(
+        {
+            "Effectif": effectifs,
+            "Proportion (%)": (effectifs / len(df_clean) * 100).round(1),
+        }
+    )
+    return stats
+
+
+def desc_types_events(df)->pd.DataFrame:
+    """génère une table qui donne les porportions d'évènements.
+
+    Args:
+        df (pd.DataFrame): table au format long
+
+    Returns:
+        pd.DataFrame: la table descriptive
+    """
+    effectifs = df["title"].value_counts(dropna=False)
+
+    stats = pd.DataFrame(
+        {
+            "Effectif": effectifs,
+            "Proportion (%)": (effectifs / effectifs.sum() * 100).round(1),
+        }
+    )
+
+    stats.index = stats.index.str.replace("_", " ").str.capitalize()
+    stats.index.name = "Par types d'évènements"
+    return stats
+
 
 # création d'une fonction qui assigne une couleur de folium à chaque type d'évènement
 
@@ -85,7 +170,8 @@ def couleur_evenement(val: str) -> str:
     return couleurs_actions.get(val.strip().lower(), "lightgray")
 
 
-# fonctions pour faire des cartes 
+# fonctions pour faire des cartes
+
 
 def carte_events(scraped):
     df = scraped.copy()
@@ -93,7 +179,7 @@ def carte_events(scraped):
     df["lon"] = pd.to_numeric(df["lon"], errors="coerce")
     df = df.dropna(subset=["lat", "lon"])
 
-    #centre de la carte
+    # centre de la carte
     center = df[["lat", "lon"]].mean().values.tolist()
     sw = df[["lat", "lon"]].min().values.tolist()
     ne = df[["lat", "lon"]].max().values.tolist()
@@ -127,4 +213,3 @@ def carte_events(scraped):
     m.fit_bounds([sw, ne])
 
     return m
-
