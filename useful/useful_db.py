@@ -103,14 +103,15 @@ def desc_bool(df)->pd.DataFrame:
     Returns:
         pd.DataFrame: la table descriptive
     """
-    df_clean = df[df["code_insee"].unique()]
-    effectifs = df_clean["title"].value_count(drop_na=True)
+    df_clean = df.drop_duplicates(subset=["CODGEO"])
+    effectifs = df_clean["has_event"].value_counts(dropna=False)
     stats = pd.DataFrame(
         {
             "Effectif": effectifs,
-            "Proportion (%)": (effectifs / len(df_clean) * 100).round(1),
+            "Proportion (%)": (effectifs / len(df_clean) * 100).round(2),
         }
     )
+    stats.index = stats.index.map({True: "Avec événement", False: "Sans événement"})
     return stats
 
 
