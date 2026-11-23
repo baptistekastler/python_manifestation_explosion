@@ -1,0 +1,8 @@
+folium
+pandas
+ipywidgets
+geopandas
+numpy
+statsmodels
+cartiflette
+python-calamine
