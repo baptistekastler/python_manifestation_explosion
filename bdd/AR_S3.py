@@ -19,6 +19,14 @@ fs = get_fs()
 
 DOSSIER = "spktaqlr/diffusion" # définition du chemin d'accès
 
+# pour enregistrer un fichier dans le s3
+# fs.put("/home/onyxia/work/python_manifestation_explosion/bdd/just17.csv", f"{DOSSIER}/just17.csv")
+
+# ceci permet de récupérer un fichier qui se trouve dans le s3
+# fs.get(
+#    f"{DOSSIER}/just17.csv",
+#    "/home/onyxia/work/python_manifestation_explosion/bdd/just17.csv",
+# )
 # ¨Pour ouvrir un fichier qui est dans le s3
 # with fs.open(f"{DOSSIER}/actions.csv", mode="rb") as f:
 #    actions_17_octobre = pd.read_csv(f)
