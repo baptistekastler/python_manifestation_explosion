@@ -23,9 +23,7 @@ def table_reg_essence_prix(df: pd.DataFrame, zone: str) -> pd.DataFrame:
         prix_e10=("e10", "mean"),
     )
 
-    # centrer et réduire les variables, car les prix de l'essence sont très resserrés :
-
     for col in ("prix_gazole", "prix_e10"):
-        events[col] = (events[col] - events[col].mean()) / events[col].std()
-    
+        events[col] = events[col] * 100
+
     return events
