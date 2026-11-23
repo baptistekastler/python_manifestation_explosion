@@ -1,6 +1,0 @@
-# j'importe la base de données des taxes locales 
-
-import pandas as pd
-
-df = pd.read_csv(".csv")
-print(df.head())
