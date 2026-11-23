@@ -6,4 +6,6 @@ import pandas as pd
 import plotnine
 import numpy as np 
 
-def 
+def table_reg_departement(df):
+
+def table_reg_ze(df):
