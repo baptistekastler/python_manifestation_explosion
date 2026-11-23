@@ -147,9 +147,8 @@ def preparer_table(
     carte = carte[["LIBELLE", "CODE_GEO", "nb_actions", "geometry"]]
     return gpd.GeoDataFrame(carte, geometry="geometry", crs=contours.crs)
 
-# ---------------------------------------------------------------------------
-# Cartes
-# ---------------------------------------------------------------------------
+
+# Fonctions qui permettent de dessiner les cartes 
 
 def carte_choroplethe_statique(
     scraped: pd.DataFrame,
@@ -270,7 +269,7 @@ def carte_choroplethe_interactive(
 
     m = folium.Map(location=[(miny + maxy) / 2, (minx + maxx) / 2], zoom_start=5, tiles=None)
 
-    # 1. Couche de fond : bordures des départements (non interactive pour laisser le survol aux communes)
+    # Couche de fond : bordures des départements (non interactive pour laisser le survol aux communes)
     if fond_dep is not None:
         folium.GeoJson(
             fond_dep,
@@ -283,7 +282,7 @@ def carte_choroplethe_interactive(
             interactive=False,
         ).add_to(m)
 
-    # 2. Couche principale : communes ou départements
+    # Couche principale : communes ou départements
     label_entite = "Commune :" if niveau == "commune" else "Département :"
     label_code = "Code INSEE :" if niveau == "commune" else "Numéro :"
     epaisseur = 0.2 if niveau == "commune" else 1.0

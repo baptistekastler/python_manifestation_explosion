@@ -24,8 +24,8 @@ CODES_METRO = [f"{i:02d}" for i in range(1, 96) if i != 20] + ["2A", "2B"]
 
 # Outre-mer : code -> (nom, CRS local, facteur d'échelle, (x, y) du centre en Lambert 93)
 # Métropole : x ≈ 100 000 à 1 300 000, y ≈ 6 040 000 à 7 100 000.
-# - DROM : colonne à gauche de la métropole (x = -120 000)
-# - COM  : rangée sous la métropole (y = 5 800 000)
+# DROM : colonne à gauche de la métropole (x = -120 000)
+# COM  : rangée sous la métropole (y = 5 800 000)
 OUTRE_MER = {
     # --- DROM (colonne de gauche) ---
     "971": ("Guadeloupe",               32620, 1.0,  (-120_000, 7_000_000)),
@@ -42,12 +42,9 @@ OUTRE_MER = {
     "988": ("Nouvelle-Calédonie",       3163,  0.5,  (1_000_000, 5_800_000)),
     "989": ("Clipperton",               32612, 1.0,  (1_120_000, 5_800_000)),
 }
-# Les TAAF (984) sont volontairement exclues : îles dispersées sur des milliers de km.
 
 
-# ---------------------------------------------------------------------------
-# Contours
-# ---------------------------------------------------------------------------
+# fonctions qui permettent de télécharger les contours
 def _telecharger_departements(year: int, essais: int = 3) -> gpd.GeoDataFrame:
     """Télécharge le GeoJSON Etalab en entier avant de le lire (avec nouvelles tentatives)."""
     url = URL_DEPARTEMENTS.format(year=year)
@@ -108,9 +105,7 @@ def charger_departements(year: int = 2023, rapprocher_outre_mer: bool = True) ->
     return gpd.GeoDataFrame(pd.concat(morceaux, ignore_index=True), crs=2154)
 
 
-# ---------------------------------------------------------------------------
-# Comptage
-# ---------------------------------------------------------------------------
+# Cette fonction permet de compter le nombre d'actions par département 
 def compter_actions_par_departement(
     df: pd.DataFrame,
     lon_col: str = "lon",
@@ -165,9 +160,7 @@ def preparer_table_departements(
     return gpd.GeoDataFrame(carte, geometry="geometry", crs=departements.crs)
 
 
-# ---------------------------------------------------------------------------
-# Cartes
-# ---------------------------------------------------------------------------
+# fonctions qui permettent de fabriquer les cartes 
 def carte_choroplethe_statique(
     scraped: pd.DataFrame,
     departements: gpd.GeoDataFrame | None = None,
