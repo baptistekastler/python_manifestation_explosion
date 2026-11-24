@@ -33,6 +33,8 @@ agg = {c: "sum" for c in cols_somme}
 agg.update({c: "first" for c in autres})
 pop_commune = pop_commune.groupby("COM", as_index=False).agg(agg)
 
+pop_commune = pop_commune.drop(columns=["REG", "DEP"])
+
 all_communes_events["CODGEO"] = all_communes_events["CODGEO"].astype("string")
 
 # gardons à l'esprit qu'environ 250 mobilissation sne se sont pas vus apposé un code_insee

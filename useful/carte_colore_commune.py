@@ -309,7 +309,7 @@ def carte_choroplethe_interactive(
 # ces fonctions permettent de faire la carte pondérée par la population
 
 def preparer_table_ponderee(
-    just17_pop: pd.DataFrame,
+    commune_events_pop: pd.DataFrame,
     col_pop: str = "PMUN",
     pour: int = 10_000,
     pop_min: int = 0,
@@ -318,16 +318,16 @@ def preparer_table_ponderee(
 ) -> gpd.GeoDataFrame:
     """Contours communaux + nb_actions + population + taux pour `pour` habitants.
 
-    just17_pop : une ligne par évènement, avec 'code_insee' et la population
+    commune_events_pop : une ligne par évènement, avec 'code_insee' et la population
     de la commune (issue du merge avec pop_commune).
     """
     # nb_actions par commune (compter_actions réutilise la colonne code_insee)
     carte = preparer_table(
-        just17_pop, niveau="commune", contours=contours, year_communes=year_communes
+        commune_events_pop, niveau="commune", contours=contours, year_communes=year_communes
     )
 
     # population : une valeur par commune, prise dans just17_pop
-    pop = just17_pop[["code_insee", col_pop]].copy()
+    pop = ommune_events_pop[["CODGEO", col_pop]].copy()
     pop["CODE_GEO"] = (
         pop["code_insee"].astype("string").str.strip()
         .str.replace(r"\.0$", "", regex=True).str.zfill(5)
@@ -344,7 +344,7 @@ def preparer_table_ponderee(
     return carte
 
 def carte_statique_ponderee(
-    just17_pop: pd.DataFrame,
+    commune_events_pop: pd.DataFrame,
     col_pop: str = "PMUN",
     pour: int = 10_000,
     pop_min: int = 0,
@@ -357,7 +357,7 @@ def carte_statique_ponderee(
 ):
     """Carte matplotlib communale : actions pour `pour` habitants, depuis just17_pop."""
     carte = preparer_table_ponderee(
-        just17_pop, col_pop="PMUN", pour=pour, pop_min=pop_min,
+        commune_events_pop, col_pop="PMUN", pour=pour, pop_min=pop_min,
         contours=contours, year_communes=year_communes,
     )
     fond_dep = _construire_fond_departements(carte)
