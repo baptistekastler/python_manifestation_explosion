@@ -35,24 +35,8 @@ def code_insee(serie):
     return codes
 
 
-# 1. ÉVÉNEMENTS : une ligne par commune, avec 1 s'il y a eu un événement, 0 sinon
 
-# sep=None : pandas devine tout seul si le fichier est séparé par des virgules ou des points-virgules.
-with fs.open(f"{DOSSIER_S3}/commune_events_pop.csv") as f:
-    evenements = pd.read_csv(f, sep=None, engine="python", dtype={"CODGEO": str})
-evenements["code_insee"] = code_insee(evenements["CODGEO"])
-
-# has_event peut être lu comme du texte ("true"/"false") ou comme un booléen (True/False) :
-# on convertit dans tous les cas en 1 / 0.
-evenements["a_eu_action"] = evenements["has_event"].astype(str).str.strip().str.lower().isin(["true", "1"]).astype(int)
-
-# Si Paris, Lyon ou Marseille apparaissent par arrondissement, on les regroupe :
-# la commune a eu un événement si au moins un de ses arrondissements en a eu un.
-evenements = evenements.groupby("code_insee", as_index=False)["a_eu_action"].max()
-print(f"Événements : {len(evenements):,} communes, dont {evenements['a_eu_action'].sum():,} avec un événement")
-
-
-# 2. BPE : nombre d'équipements par commune
+# BPE : nombre d'équipements par commune
 
 # Le fichier est très lourd : on ne lit que le code commune (DEPCOM) et le domaine (DOM).
 # DOM = "C" pour l'enseignement, "D" pour la santé et l'action sociale.
@@ -66,7 +50,7 @@ equipements = bpe.groupby("code_insee").agg(
     nb_education=("est_education", "sum"),
     nb_sante=("est_sante", "sum"),
 ).reset_index()
-print(f"BPE : {len(bpe):,} équipements dans {len(equipements):,} communes")
+# print(f"BPE : {len(bpe):,} équipements dans {len(equipements):,} communes")
 
 
 # 3. VOTE : part de chaque bloc et participation, par commune
@@ -112,7 +96,7 @@ for bloc in ["extreme_gauche", "gauche", "droite", "extreme_droite", "divers"]:
     vote[f"pct_{bloc}"] = vote[bloc] / vote["Exprimés"] * 100
 vote["participation"] = vote["Votants"] / vote["Inscrits"] * 100
 vote = vote.reset_index()
-print(f"Vote : {len(vote):,} communes")
+# print(f"Vote : {len(vote):,} communes")
 
 
 # 4. LA TABLE : une ligne par commune

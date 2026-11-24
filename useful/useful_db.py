@@ -130,15 +130,19 @@ def desc_types_events(df)->pd.DataFrame:
     """
     effectifs = df["title"].value_counts(dropna=False)
 
+    nb_communes = len(df.drop_duplicates(subset=["CODGEO"]))
+
     stats = pd.DataFrame(
         {
             "Effectif": effectifs,
-            "Proportion (%)": (effectifs / effectifs.sum() * 100).round(1),
+            "Proportion (%)": (effectifs / nb_communes * 100).round(1),
         }
     )
 
     stats.index = stats.index.str.replace("_", " ").str.capitalize()
     stats.index.name = "Par types d'évènements"
+
+    stats = stats[stats.index != "NaN"]
     return stats
 
 
