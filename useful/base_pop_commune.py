@@ -3,10 +3,7 @@
 import pandas as pd
 from useful_db import ajouter_code_insee
 
-just17 = pd.read_csv("/home/onyxia/work/python_manifestation_explosion/bdd/just17.csv", sep=";")
-just17_insee = ajouter_code_insee(just17)
-
-print(just17_insee[["ville", "lat", "lon", "code_insee"]].head())
+all_communes_events = pd.read_csv("/home/onyxia/work/python_manifestation_explosion/bdd/all_communes_events.csv", sep=";")
 
 from bdd.AR_S3 import recuperer_depuis_s3, envoyer_vers_s3
 
@@ -36,22 +33,22 @@ agg = {c: "sum" for c in cols_somme}
 agg.update({c: "first" for c in autres})
 pop_commune = pop_commune.groupby("COM", as_index=False).agg(agg)
 
-just17_insee["code_insee"] = just17_insee["code_insee"].astype("string")
+all_communes_events["CODGEO"] = all_communes_events["CODGEO"].astype("string")
 
 # gardons à l'esprit qu'environ 250 mobilissation sne se sont pas vus apposé un code_insee
 
-just17_pop = just17_insee.merge(pop_commune, 
-    left_on="code_insee",
+commune_events_pop = all_communes_events.merge(pop_commune, 
+    left_on="CODGEO",
     right_on="COM", 
     how="left",
 )
 
-print(len(just17_insee), len(just17_pop))
+print(len(commune_events_pop), len(all_communes_events))
 print(pop_commune["COM"].duplicated().sum())
 
-just17_pop.to_csv(
-    "/home/onyxia/work/python_manifestation_explosion/bdd/just17_pop.csv",
+commune_events_pop.to_csv(
+    "/home/onyxia/work/python_manifestation_explosion/bdd/commune_events_pop.csv",
     sep=";",
     index=False,
 )
-envoyer_vers_s3("/home/onyxia/work/python_manifestation_explosion/bdd/just17_pop.csv")
+envoyer_vers_s3("/home/onyxia/work/python_manifestation_explosion/bdd/commune_events_pop.csv")
