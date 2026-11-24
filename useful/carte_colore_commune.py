@@ -5,6 +5,7 @@ import pandas as pd
 import geopandas as gpd
 import requests
 import folium
+import matplotlib.patheffects as pe
 from branca.colormap import LinearColormap
 from matplotlib.colors import LinearSegmentedColormap
 from useful_db import ajouter_code_insee
@@ -307,6 +308,104 @@ def carte_choroplethe_interactive(
 
 
 # ces fonctions permettent de faire la carte pondérée par la population
+# dictionnaire des réfectures pour les afficher sur la carte 
+PREFECTURES = {
+    "01053": "Bourg-en-Bresse",
+    "02408": "Laon",
+    "03190": "Moulins",
+    "04070": "Digne-les-Bains",
+    "05061": "Gap",
+    "06088": "Nice",
+    "07186": "Privas",
+    "08105": "Charleville-Mézières",
+    "09122": "Foix",
+    "10387": "Troyes",
+    "11069": "Carcassonne",
+    "12202": "Rodez",
+    "13055": "Marseille",
+    "14118": "Caen",
+    "15014": "Aurillac",
+    "16015": "Angoulême",
+    "17300": "La Rochelle",
+    "18033": "Bourges",
+    "19272": "Tulle",
+    "2A004": "Ajaccio",
+    "2B033": "Bastia",
+    "21231": "Dijon",
+    "22278": "Saint-Brieuc",
+    "23096": "Guéret",
+    "24322": "Périgueux",
+    "25056": "Besançon",
+    "26362": "Valence",
+    "27229": "Évreux",
+    "28085": "Chartres",
+    "29232": "Quimper",
+    "30189": "Nîmes",
+    "31555": "Toulouse",
+    "32013": "Auch",
+    "33063": "Bordeaux",
+    "34172": "Montpellier",
+    "35238": "Rennes",
+    "36044": "Châteauroux",
+    "37261": "Tours",
+    "38185": "Grenoble",
+    "39300": "Lons-le-Saunier",
+    "40192": "Mont-de-Marsan",
+    "41018": "Blois",
+    "42218": "Saint-Étienne",
+    "43157": "Le Puy-en-Velay",
+    "44109": "Nantes",
+    "45234": "Orléans",
+    "46042": "Cahors",
+    "47001": "Agen",
+    "48095": "Mende",
+    "49007": "Angers",
+    "50502": "Saint-Lô",
+    "51108": "Châlons-en-Champagne",
+    "52121": "Chaumont",
+    "53130": "Laval",
+    "54395": "Nancy",
+    "55029": "Bar-le-Duc",
+    "56260": "Vannes",
+    "57463": "Metz",
+    "58194": "Nevers",
+    "59350": "Lille",
+    "60057": "Beauvais",
+    "61001": "Alençon",
+    "62041": "Arras",
+    "63113": "Clermont-Ferrand",
+    "64445": "Pau",
+    "65440": "Tarbes",
+    "66136": "Perpignan",
+    "67482": "Strasbourg",
+    "68066": "Colmar",
+    "69123": "Lyon",
+    "70550": "Vesoul",
+    "71270": "Mâcon",
+    "72181": "Le Mans",
+    "73065": "Chambéry",
+    "74010": "Annecy",
+    "76540": "Rouen",
+    "79191": "Niort",
+    "80021": "Amiens",
+    "81004": "Albi",
+    "82121": "Montauban",
+    "83137": "Toulon",
+    "84007": "Avignon",
+    "85191": "La Roche-sur-Yon",
+    "86194": "Poitiers",
+    "87085": "Limoges",
+    "88160": "Épinal",
+    "89024": "Auxerre",
+    "90010": "Belfort",
+    # Outre-mer
+    "97105": "Basse-Terre",
+    "97209": "Fort-de-France",
+    "97302": "Cayenne",
+    "97411": "Saint-Denis",
+    "97611": "Mamoudzou",
+}
+
 
 def preparer_table_ponderee(
     commune_events_pop: pd.DataFrame,
@@ -327,9 +426,9 @@ def preparer_table_ponderee(
     )
 
     # population : une valeur par commune, prise dans just17_pop
-    pop = ommune_events_pop[["CODGEO", col_pop]].copy()
+    pop = commune_events_pop[["CODGEO", col_pop]].copy()
     pop["CODE_GEO"] = (
-        pop["code_insee"].astype("string").str.strip()
+        pop["CODGEO"].astype("string").str.strip()
         .str.replace(r"\.0$", "", regex=True).str.zfill(5)
     )
     pop["population"] = pd.to_numeric(pop[col_pop], errors="coerce")
@@ -351,6 +450,7 @@ def carte_statique_ponderee(
     quantile_max: float | None = 0.99,
     couleurs: tuple = ("white", "red"),
     etiquettes: bool = True,
+    prefectures: bool = True,
     figsize: tuple = (9, 9),
     contours: gpd.GeoDataFrame | None = None,
     year_communes: int = 2023,
@@ -385,7 +485,6 @@ def carte_statique_ponderee(
         figsize=figsize,
     )
     fond_dep.boundary.plot(ax=ax, color="black", linewidth=0.4)
-
     if etiquettes:
         deps = _extraire_code_dep(carte["CODE_GEO"])
         for code, (nom, *_) in OUTRE_MER.items():
@@ -394,6 +493,18 @@ def carte_statique_ponderee(
                 continue
             minx, miny, maxx, maxy = d.total_bounds
             ax.text((minx + maxx) / 2, miny - 15_000, nom, fontsize=5, ha="center", va="top")
+    if prefectures:
+        prefs = carte[carte["CODE_GEO"].isin(PREFECTURES.keys())].copy()
+        if not prefs.empty:
+            centroids = prefs.geometry.centroid
+            ax.scatter(centroids.x,centroids.y,facecolors="none",edgecolors="black",linewidths=0.8,s=8,zorder=4,)
+            for code, x, y in zip(prefs["CODE_GEO"], centroids.x, centroids.y):
+                ax.text(
+                    x, y + 5_000, PREFECTURES[code],
+                    fontsize=5.5, ha="center", va="bottom", color="black",
+                    path_effects=[pe.withStroke(linewidth=1.5, foreground="white")],
+                    zorder=5,
+                )
 
     ax.set_axis_off()
     return ax
