@@ -11,6 +11,7 @@ Pour le projet ont été utilisées les données suivantes
 ## Organisation du projet 
 Le gros du projet se trouve dans le notebook main.ipynb. Ensuite, ce notebook fait appel à plusieurs fonctions et codes présents dans les différents fichiers. 
 
+```text
 python_manifestation_explosion
 ├── bdd/                   # Données locales et fonction pour accéder au s3
 ├── useful/                # script avec les différentes fonctions pour la partie de statistique descriptive de la base principale 
@@ -18,7 +19,8 @@ python_manifestation_explosion
 ├── explications/          # partie où se trouvent différentes fonction pour l'analyse multivariée
 ├── main.ipynb             # notebook où l'on retrouve tous les résultats
 ├── requirements.txt       # Dépendances Python
-└── README.md              # Readme d'explication du projet 
+└── README.md              # Readme d'explication du projet
+```
 
 ## Limites des données
 Les données ne correspondent qu'au 17 octobre. Il serait très intéressant de les comparer avec les autres jours de mobilisation voire d'autres mobilisations comme celles des gilets jaunes. 
