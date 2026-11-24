@@ -34,6 +34,17 @@ def code_insee(serie):
     codes = codes.where(~codes.str.match(r"^132\d\d$"), "13055")   # Marseille
     return codes
 
+with fs.open(f"{DOSSIER_S3}/commune_events_pop.csv") as f:
+    evenements = pd.read_csv(f, sep=None, engine="python", dtype={"CODGEO": str})
+evenements["code_insee"] = code_insee(evenements["CODGEO"])
+
+# has_event peut être lu comme du texte ("true"/"false") ou comme un booléen (True/False) :
+# on convertit dans tous les cas en 1 / 0.
+evenements["a_eu_action"] = evenements["has_event"].astype(str).str.strip().str.lower().isin(["true", "1"]).astype(int)
+
+# Si Paris, Lyon ou Marseille apparaissent par arrondissement, on les regroupe :
+# la commune a eu un événement si au moins un de ses arrondissements en a eu un.
+evenements = evenements.groupby("code_insee", as_index=False)["a_eu_action"].max()
 
 
 # BPE : nombre d'équipements par commune
