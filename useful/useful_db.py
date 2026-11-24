@@ -6,6 +6,10 @@ from folium.plugins import MarkerCluster
 from cartiflette import carti_download
 import ipywidgets
 
+import sys
+sys.path.append("/home/onyxia/work/python_manifestation_explosion")
+
+from AR_S3 import get_fs, envoyer_vers_s3, recuperer_depuis_s3
 
 URL_COMMUNES = (
     "https://etalab-datasets.geo.data.gouv.fr/contours-administratifs/"
