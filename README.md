@@ -1,4 +1,4 @@
-# Déterminants de la nouvelle vague : des gilets jaunes 
+# Déterminants de la nouvelle vague : des GJ à la GenZ
 ## Introduction
 Où il est question de la topographie de la fin de l'époque contemporaine. Nous avons voulu analyser les déterminants socio-démographiques de la manifestation du 17 octobre. Nous nous sommes donc penchés sur les lieux d'action. Nous avons principalement produit des statistiques descriptives de l'endroit où elles se situent. Ensuite, nous avons donné quelques explications socio-démographiques. Et, enfin, nous avons décidé de questionner l'échelle. Nous avions les coordonnées précises du lieu d'action. Or, nous nous sommes vite aperçus que les individus pouvaient venir de différentes communes voire départements. Au lieu d'esquiver cette difficulté nous nous sommes penchés sur celle-ci.  
 
