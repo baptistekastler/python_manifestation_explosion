@@ -93,5 +93,5 @@ def recuperer_depuis_s3(
 
 # appeler un dataframe depuis une autre base de données 
 # from bdd/AR_S3 import recuperer_depuis_s3
-#vrecuperer_depuis_s3("fichier.type", "/home/onyxia/work/python_manifestation_explosion/bdd/fichier.type")
+# recuperer_depuis_s3("fichier.type", "/home/onyxia/work/python_manifestation_explosion/bdd/fichier.type")
 # df = pd.read_csv("/home/onyxia/work/python_manifestation_explosion/bdd/just17.csv", sep=";")
