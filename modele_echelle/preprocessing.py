@@ -22,8 +22,5 @@ def table_reg_essence_prix(df: pd.DataFrame, zone: str) -> pd.DataFrame:
         prix_gazole=("gazole", "mean"),
         prix_e10=("e10", "mean"),
     )
-
-    for col in ("prix_gazole", "prix_e10"):
-        events[col] = events[col] * 100
-
-    return events
+    events["prix moyen"] = (events["prix_gazole"] + events["prix_e10"]) / 2 * 100
+    return events.drop(columns=["prix_gazole", "prix_e10"])
