@@ -304,3 +304,96 @@ def carte_choroplethe_interactive(
     m.fit_bounds([[miny, minx], [maxy, maxx]])
     cmap.add_to(m)
     return m
+
+
+# ces fonctions permettent de faire la carte pondérée par la population
+
+def preparer_table_ponderee(
+    just17_pop: pd.DataFrame,
+    col_pop: str = "PMUN",
+    pour: int = 10_000,
+    pop_min: int = 0,
+    contours: gpd.GeoDataFrame | None = None,
+    year_communes: int = 2023,
+) -> gpd.GeoDataFrame:
+    """Contours communaux + nb_actions + population + taux pour `pour` habitants.
+
+    just17_pop : une ligne par évènement, avec 'code_insee' et la population
+    de la commune (issue du merge avec pop_commune).
+    """
+    # nb_actions par commune (compter_actions réutilise la colonne code_insee)
+    carte = preparer_table(
+        just17_pop, niveau="commune", contours=contours, year_communes=year_communes
+    )
+
+    # population : une valeur par commune, prise dans just17_pop
+    pop = just17_pop[["code_insee", col_pop]].copy()
+    pop["CODE_GEO"] = (
+        pop["code_insee"].astype("string").str.strip()
+        .str.replace(r"\.0$", "", regex=True).str.zfill(5)
+    )
+    pop["population"] = pd.to_numeric(pop[col_pop], errors="coerce")
+    pop = pop.dropna(subset=["CODE_GEO"]).groupby("CODE_GEO", as_index=False)["population"].first()
+
+    carte = carte.merge(pop, on="CODE_GEO", how="left", validate="one_to_one")
+
+    # taux : 0 si aucune action, NaN si population inconnue ou sous le seuil
+    taux = carte["nb_actions"] / carte["population"] * pour
+    taux = taux.where(carte["population"] > pop_min)
+    carte["taux"] = np.where(carte["nb_actions"] == 0, 0.0, taux)
+    return carte
+
+def carte_statique_ponderee(
+    just17_pop: pd.DataFrame,
+    col_pop: str = "PMUN",
+    pour: int = 10_000,
+    pop_min: int = 0,
+    quantile_max: float | None = 0.99,
+    couleurs: tuple = ("white", "red"),
+    etiquettes: bool = True,
+    figsize: tuple = (9, 9),
+    contours: gpd.GeoDataFrame | None = None,
+    year_communes: int = 2023,
+):
+    """Carte matplotlib communale : actions pour `pour` habitants, depuis just17_pop."""
+    carte = preparer_table_ponderee(
+        just17_pop, col_pop="PMUN", pour=pour, pop_min=pop_min,
+        contours=contours, year_communes=year_communes,
+    )
+    fond_dep = _construire_fond_departements(carte)
+
+    legende = f"Actions pour {pour:,} habitants".replace(",", " ")
+
+    vmax = (
+        float(carte["taux"].quantile(quantile_max))
+        if quantile_max is not None else float(carte["taux"].max())
+    )
+    vmax = max(vmax, 1e-9)
+
+    cmap = LinearSegmentedColormap.from_list("degrade", list(couleurs))
+    ax = carte.plot(
+        column="taux",
+        cmap=cmap,
+        vmin=0,
+        vmax=vmax,
+        edgecolor="grey",
+        linewidth=0.05,
+        legend=True,
+        legend_kwds={"label": legende, "shrink": 0.6,
+                     "extend": "max" if quantile_max else "neither"},
+        missing_kwds={"color": "lightgrey"},
+        figsize=figsize,
+    )
+    fond_dep.boundary.plot(ax=ax, color="black", linewidth=0.4)
+
+    if etiquettes:
+        deps = _extraire_code_dep(carte["CODE_GEO"])
+        for code, (nom, *_) in OUTRE_MER.items():
+            d = carte.loc[deps == code]
+            if d.empty:
+                continue
+            minx, miny, maxx, maxy = d.total_bounds
+            ax.text((minx + maxx) / 2, miny - 15_000, nom, fontsize=5, ha="center", va="top")
+
+    ax.set_axis_off()
+    return ax
