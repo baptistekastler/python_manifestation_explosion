@@ -8,4 +8,4 @@ Elles sont stockées en S3.
 · données recherchées sur le site data.economie.gouv.fr pour la fiscalité locale et les dépenses locales
 
 ## Organisation du projet 
-Le gros du projet se trouve dans le notebook XXXX. Le code pour le *scraping* peut être trouvé dans XXXX. 
+Le gros du projet se trouve dans le notebook main.ipynb. Ensuite, ce notebook fait appel à plusieurs fonctions et codes présents dans les différents fichiers. 
