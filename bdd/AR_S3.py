@@ -90,3 +90,8 @@ def recuperer_depuis_s3(
     chemin_source = f"{dossier_s3}/{nom_distant}"
     fs.get(chemin_source, chemin_local)
     return chemin_local
+
+# appeler un dataframe depuis une autre base de données 
+# from bdd/AR_S3 import recuperer_depuis_s3
+#vrecuperer_depuis_s3("fichier.type", "/home/onyxia/work/python_manifestation_explosion/bdd/fichier.type")
+# df = pd.read_csv("/home/onyxia/work/python_manifestation_explosion/bdd/just17.csv", sep=";")
