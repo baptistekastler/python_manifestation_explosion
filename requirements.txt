@@ -8,3 +8,4 @@ cartiflette
 python-calamine
 statsmodels
 plotnine
+python-dotenv

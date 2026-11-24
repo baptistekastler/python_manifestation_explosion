@@ -196,17 +196,6 @@ for nom, formule in MODELES.items():
 effets = pd.DataFrame(effets).reindex(VARIABLES)      # lignes dans l'ordre de VARIABLES
 pvalues = pd.DataFrame(pvalues).reindex(VARIABLES)
 
-print("\n" + "=" * 90)
-print("Variation de la probabilité d'avoir eu un événement (en %)")
-print("  vote et participation : pour +10 points | équipement : pour +1 écart-type")
-print("  log_inscrits : pour une commune 2,7 fois plus grande | bloc de référence : droite")
-print("=" * 90)
-print(effets.round(1).to_string())
-print("\np-values (< 0,05 : effet significatif au seuil de 5 %)")
-print(pvalues.round(3).to_string())
-print(f"\nModèle (3) : {(~dep_avec_evenement).sum():,} communes retirées "
-      f"(départements sans aucun événement)")
-
 effets.to_csv(ICI / "sorties" / "poisson_effets.csv")
 pvalues.to_csv(ICI / "sorties" / "poisson_pvalues.csv")
 
