@@ -6,3 +6,5 @@ numpy
 statsmodels
 cartiflette
 python-calamine
+statsmodels
+plotnine
