@@ -11,12 +11,14 @@ def table_reg_essence_prix(df: pd.DataFrame, zone: str) -> pd.DataFrame:
     """_summary_
 
     Args:
-        df (pd.DataFrame): une table d'évènements par ville
-        zone (str): une zone géographique
+        df (pd.DataFrame): _description_
+        zone (str): _description_
+
 
     Returns:
         pd.DataFrame: _description_
     """
+
     events = df.groupby(zone).agg(
         nb_events=("has_event", "sum"),
         prix_gazole=("gazole", "mean"),
